@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxTotal" value="300"/>
+        <property name="maxIdle" value="200"/>
+        <property name="minIdle" value="50"/>
+        <property name="maxWaitMillis" value="5000"/>
+        <property name="testOnBorrow" value="true"/>
+        <property name="testOnReturn" value="false"/>
+        <!-- <property name="testWhileIdle" value="true" /> -->
+    </bean>
+
+    <bean id="jedisPool" class="redis.clients.jedis.JedisPool">
+        <constructor-arg name="poolConfig" ref="poolConfig"/>
+        <constructor-arg name="host" value="${mq.redis.host}"/>
+        <constructor-arg name="port" value="${mq.redis.port}"/>
+        <constructor-arg name="timeout" value="${mq.redis.timeout}" type="int"/>
+    </bean>
+
+    <bean id="redisQueue" class="com.github.bh.hjob.mq.RedisQueue">
+        <property name="jedisPool" ref="jedisPool"/>
+    </bean>
+    <!--消息队列生产者-->
+    <bean id="eventRedisProducer" class=" com.github.bh.hjob.mq.EventRedisProducer">
+        <property name="redisQueue" ref="redisQueue"/>
+    </bean>
+
+</beans>

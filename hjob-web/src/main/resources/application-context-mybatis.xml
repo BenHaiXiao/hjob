@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd" default-lazy-init="true">
+
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <!-- dev -->
+        <property name="url"
+                  value="jdbc:mysql://${jdbc.host}:${jdbc.port}/${jdbc.dbname}?useUnicode=true&amp;characterEncoding=UTF-8&amp;zeroDateTimeBehavior=convertToNull&amp;autoReconnect=true"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+
+        <!-- 配置初始化大小、最小、最大 -->
+        <property name="initialSize" value="50"/>
+        <property name="maxActive" value="100"/>
+
+        <!-- 配置获取连接等待超时的时间 -->
+        <property name="maxWait" value="5000"/>
+
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="600000"/>
+
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="300000"/>
+        <property name="validationQuery" value="select 1"/>
+        <property name="testWhileIdle" value="true"/>
+        <property name="testOnBorrow" value="false"/>
+        <property name="testOnReturn" value="false"/>
+        <!--&lt;!&ndash;监控&ndash;&gt;-->
+        <!--&lt;!&ndash;慢SQL记录监控，超过5s为慢sql&ndash;&gt;-->
+        <!--<property name="connectionProperties" value="druid.stat.slowSqlMillis=5000" />-->
+        <!--&lt;!&ndash;组合配置,StatFilter监控&ndash;&gt;-->
+        <!--<property name="filters" value="stat,log4j" />-->
+        <!--&lt;!&ndash;定时输出监控日志到logBack中，30s一次&ndash;&gt;-->
+        <!--<property name="timeBetweenLogStatsMillis" value="30000" />-->
+
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <property name="mapperLocations" value="classpath*:mappers/base/*Mapper.xml"/>
+        <property name="typeAliasesPackage" value="com.github.bh.hjob.core.persist.base.model"/>
+    </bean>
+
+    <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.github.bh.hjob.core.persist.base.mapper"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+</beans>
+
